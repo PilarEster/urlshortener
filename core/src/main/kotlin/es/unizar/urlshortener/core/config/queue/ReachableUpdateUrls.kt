@@ -1,4 +1,4 @@
-package es.unizar.urlshortener.core.queue
+package es.unizar.urlshortener.core.config.queue
 
 import es.unizar.urlshortener.core.usecases.ReachableWebUseCase
 import org.springframework.scheduling.annotation.Async

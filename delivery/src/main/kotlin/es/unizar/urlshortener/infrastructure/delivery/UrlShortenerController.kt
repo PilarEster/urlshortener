@@ -2,11 +2,7 @@ package es.unizar.urlshortener.infrastructure.delivery
 
 import es.unizar.urlshortener.core.ClickProperties
 import es.unizar.urlshortener.core.ShortUrlProperties
-import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
-import es.unizar.urlshortener.core.usecases.LogClickUseCase
-import es.unizar.urlshortener.core.usecases.QrCodeUseCase
-import es.unizar.urlshortener.core.usecases.ReachableWebUseCase
-import es.unizar.urlshortener.core.usecases.RedirectUseCase
+import es.unizar.urlshortener.core.usecases.*
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpHeaders
@@ -43,7 +39,12 @@ interface UrlShortenerController {
      */
     fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut>
 
+    fun ranking(request: HttpServletRequest): ResponseEntity<RankingDataOut>
+
+    fun users(request: HttpServletRequest): ResponseEntity<UserDataOut>
+
     fun generateQrCode(id: String, request: HttpServletRequest): ResponseEntity<ByteArrayResource>
+
 }
 
 /**
@@ -64,6 +65,17 @@ data class ShortUrlDataOut(
 )
 
 /**
+ * Data returned after the creation of a ranking.
+ */
+data class RankingDataOut(
+    val list: List<UrlSum> = emptyList()
+)
+
+data class UserDataOut(
+    val list: List<UserSum> = emptyList()
+)
+
+/**
  * The implementation of the controller.
  *
  * **Note**: Spring Boot is able to discover this [RestController] without further configuration.
@@ -75,6 +87,7 @@ class UrlShortenerControllerImpl(
     val logClickUseCase: LogClickUseCase,
     val createShortUrlUseCase: CreateShortUrlUseCase,
     val qrCodeUseCase: QrCodeUseCase,
+    val rankingUseCase: RankingUseCase,
     val reachableWebUseCase: ReachableWebUseCase,
     val qrQueue: BlockingQueue<Pair<String, String>>,
     val reachableQueue: BlockingQueue<String>
@@ -100,7 +113,8 @@ class UrlShortenerControllerImpl(
 
     @PostMapping("/api/link", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     override fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut> =
-        createShortUrlUseCase.create(
+
+            createShortUrlUseCase.create(
             url = data.url,
             data = ShortUrlProperties(
                 ip = request.remoteAddr,
@@ -108,6 +122,7 @@ class UrlShortenerControllerImpl(
                 qr = data.qr
             )
         ).let {
+                println(request.remoteAddr)
             val h = HttpHeaders()
             val url = linkTo<UrlShortenerControllerImpl> { redirectTo(it.hash, request) }.toUri()
             h.location = url
@@ -140,5 +155,23 @@ class UrlShortenerControllerImpl(
             val headers = HttpHeaders()
             headers.set(HttpHeaders.CONTENT_TYPE, IMAGE_PNG_VALUE)
             ResponseEntity<ByteArrayResource>(ByteArrayResource(it, IMAGE_PNG_VALUE), headers, HttpStatus.OK)
+        }
+
+    @GetMapping("/api/link")
+    override fun ranking(request: HttpServletRequest): ResponseEntity<RankingDataOut> =
+        rankingUseCase.ranking().let{
+            val response = RankingDataOut(
+                    list = it
+            )
+            ResponseEntity<RankingDataOut>(response, HttpStatus.OK)
+        }
+
+    @GetMapping("/api/link/{id}")
+    override fun users(request: HttpServletRequest): ResponseEntity<UserDataOut> =
+        rankingUseCase.user().let{
+            val response = UserDataOut(
+                    list = it
+            )
+            ResponseEntity<UserDataOut>(response, HttpStatus.OK)
         }
 }

@@ -1,0 +1,2 @@
+INSERT INTO ClickEntity (hash, created, ip, referrer, browser, platform, country) VALUES ('hhhh', 2022-12-21T12:46:11.450415192+01:00, '127.0.0.1:47661', 'myreferrer', 'mybrowser', 'myplatform', 'Spain');
+INSERT INTO ShortUrlEntity (hash, target, sponsor, created, owner, mode, safe, ip, country, qr) VALUES ('hhhh', 'target', 'sponsor', 2022-12-21T12:46:11.450415192+01:00, 'owner', 1, true, '127.0.0.1:47661', 'Spain', true);

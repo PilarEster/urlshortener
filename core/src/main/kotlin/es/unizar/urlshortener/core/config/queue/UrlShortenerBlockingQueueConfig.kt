@@ -1,4 +1,4 @@
-package es.unizar.urlshortener.core.queue
+package es.unizar.urlshortener.core.config.queue
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

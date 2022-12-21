@@ -21,7 +21,7 @@
                     <div class="form-row align-items-center">
                         <div class="col-auto">
                             <input class="form-control mb-2" name="url" id="inlineFormInput"
-                                placeholder="Enter a URL" title="Enter a URL" type="text">
+                                   placeholder="Enter a URL" title="Enter a URL" type="text">
                         </div>
                         <div class="col-auto">
                             <div class="form-check mb-2">
@@ -50,8 +50,47 @@
                 </div>
             </div>
         </div>
+        <div class="m_col-lg-12 m_text-center">
+            <form class="m_col-lg-12" id="ranking" role="form" target="_blank">
+                <div class="m_input-group m_input-group-lg m_col-sm-offset-4 m_col-sm-4">
+                    <button class="btn btn-primary mb-2" type="submit">See ranking</button>
+                </div>
+            </form>
+        </div>
+        <div class="m_row">
+            <div class="m_col-lg-12 m_text-center">
+                <div class="m_col-sm-offset-4 m_col-sm-4 m_text-center">
+                    <br>
+                    <div class="m_col-lg-12 m_text-center" id="result-list">
+                        <div class='alert alert-success lead'>
+                            <p>URL      Visitas</p>
+                            <ul id="list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="m_col-lg-12 m_text-center">
+            <form class="m_col-lg-12" id="ranking-users" role="form" target="_blank">
+                <div class="m_input-group m_input-group-lg m_col-sm-offset-4 m_col-sm-4">
+                    <button class="btn btn-primary mb-2" type="submit">See user ranking</button>
+                </div>
+            </form>
+        </div>
+        <div class="m_row">
+            <div class="m_col-lg-12 m_text-center">
+                <div class="m_col-sm-offset-4 m_col-sm-4 m_text-center">
+                    <br>
+                    <div class="m_col-lg-12 m_text-center" id="result-list-users">
+                        <div class='alert alert-success lead'>
+                            <p>IP      Visitas</p>
+                            <ul id="users"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
     <script src="js/app.js" type="text/javascript"/></script>
 </body>
 </html>
