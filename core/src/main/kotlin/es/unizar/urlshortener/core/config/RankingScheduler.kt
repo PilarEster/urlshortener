@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component
 
 @Component
 open class RankingScheduler(
-        private val rankingUseCase: RankingUseCase
+    private val rankingUseCase: RankingUseCase
 ) {
     @Async("executorQueueConfig")
     @Scheduled(fixedDelay = 500L)

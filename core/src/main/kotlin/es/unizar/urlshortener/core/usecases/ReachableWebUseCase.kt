@@ -33,9 +33,7 @@ class ReachableWebUseCaseImpl(
     private val reachableQueue: BlockingQueue<String>
 ) : ReachableWebUseCase {
     override fun reach(url: String) {
-        val client = HttpClient.newBuilder()
-//            .connectTimeout(Duration.ofSeconds(REQUEST_HEAD_TIMEOUT))
-            .build()
+        val client = HttpClient.newBuilder().build()
 
         val request = HttpRequest.newBuilder()
             .uri(URI.create(url))

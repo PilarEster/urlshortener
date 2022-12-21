@@ -10,9 +10,9 @@ import es.unizar.urlshortener.core.WebUnreachable
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.QrCodeUseCase
+import es.unizar.urlshortener.core.usecases.RankingUseCase
 import es.unizar.urlshortener.core.usecases.ReachableWebUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.never
@@ -53,6 +53,10 @@ class UrlShortenerControllerTest {
     @MockBean
     private lateinit var createShortUrlUseCase: CreateShortUrlUseCase
 
+    @Suppress("UnusedPrivateMember")
+    @MockBean
+    private lateinit var rankingUseCase: RankingUseCase
+
     @MockBean
     private lateinit var qrCodeUseCase: QrCodeUseCase
 
@@ -67,7 +71,6 @@ class UrlShortenerControllerTest {
     @MockBean
     private lateinit var reachableQueue: BlockingQueue<String>
 
-    @Disabled
     @Test
     fun `redirectTo returns a redirect when the key exists`() {
         given(redirectUseCase.redirectTo("key")).willReturn(Redirection("http://example.com/"))
@@ -79,7 +82,6 @@ class UrlShortenerControllerTest {
         verify(logClickUseCase).logClick("key", ClickProperties(ip = "127.0.0.1"))
     }
 
-    @Disabled
     @Test
     fun `redirectTo returns a bad request when the key exists and the website is unreachable`() {
         given(redirectUseCase.redirectTo("key")).willReturn(Redirection("http://example.com/health"))
@@ -91,7 +93,6 @@ class UrlShortenerControllerTest {
             .andExpect(status().isBadRequest)
     }
 
-    @Disabled
     @Test
     fun `redirectTo returns a not found when the key does not exist`() {
         given(redirectUseCase.redirectTo("key"))
@@ -105,7 +106,6 @@ class UrlShortenerControllerTest {
         verify(logClickUseCase, never()).logClick("key", ClickProperties(ip = "127.0.0.1"))
     }
 
-    @Disabled
     @Test
     fun `creates returns a basic redirect if it can compute a hash`() {
         given(
@@ -127,7 +127,6 @@ class UrlShortenerControllerTest {
             .andExpect(jsonPath("$.url").value("http://localhost/f684a3c4"))
     }
 
-    @Disabled
     @Test
     fun `creates returns bad request if it can compute a hash`() {
         given(
@@ -147,7 +146,6 @@ class UrlShortenerControllerTest {
             .andExpect(jsonPath("$.statusCode").value(400))
     }
 
-    @Disabled
     @Test
     fun `qr returns an image when the key exists`() {
         given(qrCodeUseCase.getQR("key")).willReturn("Hello".toByteArray())
@@ -158,7 +156,6 @@ class UrlShortenerControllerTest {
             .andExpect(content().bytes("Hello".toByteArray()))
     }
 
-    @Disabled
     @Test
     fun `qr returns a not found when the key does not exist`() {
         given(qrCodeUseCase.getQR("key"))
