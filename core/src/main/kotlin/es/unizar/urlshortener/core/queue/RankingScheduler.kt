@@ -1,3 +1,5 @@
+package es.unizar.urlshortener.core.queue
+
 import es.unizar.urlshortener.core.usecases.RankingUseCase
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
