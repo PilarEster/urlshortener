@@ -1,6 +1,7 @@
 package es.unizar.urlshortener.core.usecases
 
-import es.unizar.urlshortener.core.*
+import es.unizar.urlshortener.core.ClickRepositoryService
+import es.unizar.urlshortener.core.ShortUrlRepositoryService
 
 interface ClickSum {
     fun getHash(): String
@@ -27,7 +28,6 @@ interface RankingUseCase {
     fun user(): List<UserSum>
 }
 
-
 /**
  * Implementation of [RankingUseCase].
  */
@@ -36,15 +36,13 @@ class RankingUseCaseImpl(
     private val clickRepositoryService: ClickRepositoryService
 ) : RankingUseCase {
     override fun ranking(): List<UrlSum> =
-            clickRepositoryService.computeClickSum().map { case ->
-                shortUrlRepositoryService.findByKey(case.getHash()).let { shortUrl ->
-                    if (shortUrl != null) {
-                        UrlSum(shortUrl.hash, case.getSum())
-                    }
-                    else null
-                }
-            }.filterNotNull()
-
+        clickRepositoryService.computeClickSum().map { case ->
+            shortUrlRepositoryService.findByKey(case.getHash()).let { shortUrl ->
+                if (shortUrl != null) {
+                    UrlSum(shortUrl.hash, case.getSum())
+                } else null
+            }
+        }.filterNotNull()
 
     override fun user(): List<UserSum> =
         shortUrlRepositoryService.computeUserClicks().map { case ->

@@ -2,7 +2,6 @@ package es.unizar.urlshortener.core
 
 import es.unizar.urlshortener.core.usecases.ClickSum
 import es.unizar.urlshortener.core.usecases.ClickUserSum
-import org.springframework.core.io.ByteArrayResource
 
 /**
  * [ClickRepositoryService] is the port to the repository that provides persistence to [Clicks][Click].
