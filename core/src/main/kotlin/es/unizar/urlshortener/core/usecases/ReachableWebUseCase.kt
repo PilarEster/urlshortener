@@ -40,17 +40,15 @@ class ReachableWebUseCaseImpl(
             .method("HEAD", BodyPublishers.noBody())
             .build()
 
-        try {
-            val response = client.send(request, BodyHandlers.discarding())
+        val response = client.send(request, BodyHandlers.discarding())
 
-            if (response.statusCode() >= HttpStatus.BAD_REQUEST.value()) {
-                reachableMap.put(url, Pair(false, OffsetDateTime.now()))
-                throw WebUnreachable(url)
-            }
-            reachableMap.put(url, Pair(true, OffsetDateTime.now()))
-        } catch (cause: Throwable) {
+        if (HttpStatus.valueOf(response.statusCode()).is4xxClientError ||
+            HttpStatus.valueOf(response.statusCode()).is5xxServerError
+        ) {
+            reachableMap.put(url, Pair(false, OffsetDateTime.now()))
             throw WebUnreachable(url)
         }
+        reachableMap.put(url, Pair(true, OffsetDateTime.now()))
     }
 
     override fun isReachable(url: String): Boolean =

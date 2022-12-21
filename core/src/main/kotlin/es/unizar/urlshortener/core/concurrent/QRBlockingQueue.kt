@@ -1,4 +1,4 @@
-package es.unizar.urlshortener.core.queue
+package es.unizar.urlshortener.core.concurrent
 
 import es.unizar.urlshortener.core.usecases.QrCodeUseCase
 import org.springframework.scheduling.annotation.Async

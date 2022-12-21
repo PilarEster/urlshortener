@@ -1,4 +1,4 @@
-package es.unizar.urlshortener.core.queue
+package es.unizar.urlshortener.core.concurrent
 
 import es.unizar.urlshortener.core.usecases.ReachableWebUseCase
 import org.springframework.scheduling.annotation.Async
@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-open class ReachableUpdateUrls(
+open class ReachableUpdateUrlsScheduler(
     private val reachableWebUseCase: ReachableWebUseCase
 ) {
     @Async("executorQueueConfig")

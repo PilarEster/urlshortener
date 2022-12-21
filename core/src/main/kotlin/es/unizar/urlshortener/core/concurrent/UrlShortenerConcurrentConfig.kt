@@ -1,4 +1,4 @@
-package es.unizar.urlshortener.core.queue
+package es.unizar.urlshortener.core.concurrent
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,7 +14,7 @@ private const val QUEUE_CAPACITY = 1000
 @Configuration
 @EnableAsync
 @EnableScheduling
-open class UrlShortenerBlockingQueueConfig {
+open class UrlShortenerConcurrentConfig {
     @Bean("executorQueueConfig")
     open fun executor(): Executor {
         val executor = ThreadPoolTaskExecutor()
