@@ -60,7 +60,7 @@ class HttpRequestTest {
     }
 
     @Test
-    fun `redirectTo returns a redirect when the key exists and is reachable`() {
+    fun `redirectTo returns a redirect when the key exists, is safe and reachable`() {
         val target = shortUrl("http://shop.mango.com/es").headers.location
         require(target != null)
         TimeUnit.SECONDS.sleep(2L)
@@ -69,6 +69,40 @@ class HttpRequestTest {
         assertThat(response.headers.location).isEqualTo(URI.create("http://shop.mango.com/es"))
 
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(1)
+    }
+
+    @Test
+    fun `redirectTo returns a bad request with retry-after when the key exists and safety is unknown`() {
+        val target = shortUrl("http://shop.mango.com/es").headers.location
+        require(target != null)
+        val response = restTemplate.getForEntity(target, String::class.java)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(response.headers.get("Retry-After")).isEqualTo(listOf("500"))
+        assertThat(response.headers.location).isEqualTo(URI.create("http://shop.mango.com/es"))
+
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
+    }
+
+    @Test
+    fun `redirectTo returns a forbidden when the key exists and is not safety`() {
+        val target = shortUrl("https://testsafebrowsing.appspot.com/s/malware.html").headers.location
+        require(target != null)
+        TimeUnit.SECONDS.sleep(2L)
+        val response = restTemplate.getForEntity(target, String::class.java)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
+    }
+
+    @Test
+    fun `redirectTo returns a bad request when the key exists and is not reachable`() {
+        val target = shortUrl("http://example.com/health").headers.location
+        require(target != null)
+        TimeUnit.SECONDS.sleep(2L)
+        val response = restTemplate.getForEntity(target, String::class.java)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
     }
 
     @Test
@@ -107,16 +141,8 @@ class HttpRequestTest {
 
     @Test
     fun `creates returns bad request if it can't compute a hash`() {
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+        val response = shortUrl("ftp://shop.mango.com/es")
 
-        val data: MultiValueMap<String, String> = LinkedMultiValueMap()
-        data["url"] = "ftp://example.com/"
-
-        val response = restTemplate.postForEntity(
-            "http://localhost:$port/api/link",
-            HttpEntity(data, headers), ShortUrlDataOut::class.java
-        )
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
 
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "shorturl")).isEqualTo(0)

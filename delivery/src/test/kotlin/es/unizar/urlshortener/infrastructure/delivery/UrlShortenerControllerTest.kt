@@ -27,9 +27,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.OffsetDateTime
 import java.util.concurrent.BlockingQueue
 
 @WebMvcTest
@@ -72,8 +74,17 @@ class UrlShortenerControllerTest {
     private lateinit var reachableQueue: BlockingQueue<String>
 
     @Test
-    fun `redirectTo returns a redirect when the key exists`() {
-        given(redirectUseCase.redirectTo("key")).willReturn(Redirection("http://example.com/"))
+    fun `redirectTo returns a redirect when the key exists, is safe and reachable`() {
+        given(redirectUseCase.redirectTo("key"))
+            .willReturn(
+                ShortUrl(
+                    "",
+                    Redirection("http://example.com/"),
+                    created = OffsetDateTime.now(),
+                    ShortUrlProperties(safe = true)
+                )
+            )
+
         given(reachableWebUseCase.isReachable("http://example.com/")).willReturn(true)
         mockMvc.perform(get("/{id}", "key"))
             .andExpect(status().isTemporaryRedirect)
@@ -83,14 +94,60 @@ class UrlShortenerControllerTest {
     }
 
     @Test
-    fun `redirectTo returns a bad request when the key exists and the website is unreachable`() {
-        given(redirectUseCase.redirectTo("key")).willReturn(Redirection("http://example.com/health"))
-        given(
-            reachableWebUseCase.reach("http://example.com/health")
-        ).willAnswer { throw WebUnreachable("http://example.com/healt") }
+    fun `redirectTo returns a bad request with retry-after when the key exists and safety is unknown`() {
+        given(redirectUseCase.redirectTo("key"))
+            .willReturn(
+                ShortUrl(
+                    "",
+                    Redirection("http://example.com/health")
+                )
+            )
 
         mockMvc.perform(get("/{id}", "key"))
             .andExpect(status().isBadRequest)
+            .andExpect(header().stringValues("Retry-After", "500"))
+
+        verify(logClickUseCase, never()).logClick("key", ClickProperties(ip = "127.0.0.1"))
+    }
+
+    @Test
+    fun `redirectTo returns a forbidden when the key exists and is not safe`() {
+        given(redirectUseCase.redirectTo("key"))
+            .willReturn(
+                ShortUrl(
+                    "",
+                    Redirection("http://example.com/health"),
+                    created = OffsetDateTime.now(),
+                    ShortUrlProperties(safe = false)
+                )
+            )
+
+        mockMvc.perform(get("/{id}", "key"))
+            .andExpect(status().isForbidden)
+
+        verify(logClickUseCase, never()).logClick("key", ClickProperties(ip = "127.0.0.1"))
+    }
+
+    @Test
+    fun `redirectTo returns a bad request when the key exists and the website is unreachable`() {
+        given(redirectUseCase.redirectTo("key"))
+            .willReturn(
+                ShortUrl(
+                    "",
+                    Redirection("http://example.com/health"),
+                    created = OffsetDateTime.now(),
+                    ShortUrlProperties(safe = true)
+                )
+            )
+
+        given(
+            reachableWebUseCase.reach("http://example.com/health")
+        ).willAnswer { throw WebUnreachable("http://example.com/health") }
+
+        mockMvc.perform(get("/{id}", "key"))
+            .andExpect(status().isBadRequest)
+
+        verify(logClickUseCase, never()).logClick("key", ClickProperties(ip = "127.0.0.1"))
     }
 
     @Test
@@ -101,7 +158,6 @@ class UrlShortenerControllerTest {
         mockMvc.perform(get("/{id}", "key"))
             .andDo(print())
             .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.statusCode").value(404))
 
         verify(logClickUseCase, never()).logClick("key", ClickProperties(ip = "127.0.0.1"))
     }

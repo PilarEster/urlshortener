@@ -46,9 +46,9 @@ class ReachableWebUseCaseImpl(
             HttpStatus.valueOf(response.statusCode()).is5xxServerError
         ) {
             reachableMap.put(url, Pair(false, OffsetDateTime.now()))
-            throw WebUnreachable(url)
+        } else {
+            reachableMap.put(url, Pair(true, OffsetDateTime.now()))
         }
-        reachableMap.put(url, Pair(true, OffsetDateTime.now()))
     }
 
     override fun isReachable(url: String): Boolean =

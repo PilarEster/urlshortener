@@ -2,6 +2,8 @@ package es.unizar.urlshortener.infrastructure.delivery
 
 import es.unizar.urlshortener.core.ClickProperties
 import es.unizar.urlshortener.core.ShortUrlProperties
+import es.unizar.urlshortener.core.UrlNotSafe
+import es.unizar.urlshortener.core.WebUnreachable
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.QrCodeUseCase
@@ -99,18 +101,28 @@ class UrlShortenerControllerImpl(
     val reachableQueue: BlockingQueue<String>
 ) : UrlShortenerController {
 
+    @Suppress("NestedBlockDepth")
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> {
 
-        redirectUseCase.redirectTo(id).let { redirect ->
-            if (reachableWebUseCase.isReachable(redirect.target)) {
-                logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr))
+        redirectUseCase.redirectTo(id).let { shorturl ->
+
+            shorturl.properties.safe?.let { safe ->
+                if (safe) {
+                    if (reachableWebUseCase.isReachable(shorturl.redirection.target)) {
+                        logClickUseCase.logClick(id, ClickProperties(ip = request.remoteAddr))
+                        val h = HttpHeaders()
+                        h.location = URI.create(shorturl.redirection.target)
+                        return ResponseEntity<Void>(h, HttpStatus.valueOf(shorturl.redirection.mode))
+                    } else {
+                        throw WebUnreachable(shorturl.redirection.target)
+                    }
+                } else {
+                    throw UrlNotSafe(shorturl.redirection.target)
+                }
+            } ?: run {
                 val h = HttpHeaders()
-                h.location = URI.create(redirect.target)
-                return ResponseEntity<Void>(h, HttpStatus.valueOf(redirect.mode))
-            } else {
-                val h = HttpHeaders()
-                h.location = URI.create(redirect.target)
+                h.location = URI.create(shorturl.redirection.target)
                 h.set(HttpHeaders.RETRY_AFTER, RETRY_AFTER_DELAY.toString())
                 return ResponseEntity<Void>(h, HttpStatus.BAD_REQUEST)
             }
@@ -138,12 +150,10 @@ class UrlShortenerControllerImpl(
 
             val response = ShortUrlDataOut(
                 url = url,
+
                 properties = when (data.qr) {
-                    false -> mapOf(
-                        "safe" to it.properties.safe
-                    )
+                    false -> mapOf()
                     true -> mapOf(
-                        "safe" to it.properties.safe,
                         "qr" to linkTo<UrlShortenerControllerImpl> { generateQrCode(it.hash, request) }.toUri()
                     )
                 }

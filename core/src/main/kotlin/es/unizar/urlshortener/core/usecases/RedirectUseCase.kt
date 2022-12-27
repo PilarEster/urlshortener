@@ -2,8 +2,8 @@ package es.unizar.urlshortener.core.usecases
 
 import es.unizar.urlshortener.core.Redirection
 import es.unizar.urlshortener.core.RedirectionNotFound
+import es.unizar.urlshortener.core.ShortUrl
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
-import es.unizar.urlshortener.core.UrlNotSafe
 
 /**
  * Given a key returns a [Redirection] that contains a [URI target][Redirection.target]
@@ -12,7 +12,7 @@ import es.unizar.urlshortener.core.UrlNotSafe
  * **Note**: This is an example of functionality.
  */
 interface RedirectUseCase {
-    fun redirectTo(key: String): Redirection
+    fun redirectTo(key: String): ShortUrl
 }
 
 /**
@@ -21,20 +21,7 @@ interface RedirectUseCase {
 class RedirectUseCaseImpl(
     private val shortUrlRepository: ShortUrlRepositoryService
 ) : RedirectUseCase {
-    override fun redirectTo(key: String): Redirection {
-        val redirect = shortUrlRepository
-            .findByKey(key)
-            ?.redirection
-            ?: throw RedirectionNotFound(key)
-
-        val su = shortUrlRepository.findByKey(key)
-
-        if (su != null) {
-            if (!su.properties.safe) {
-                throw UrlNotSafe(su.redirection.target)
-            }
-        }
-
-        return redirect
+    override fun redirectTo(key: String): ShortUrl {
+        return shortUrlRepository.findByKey(key) ?: throw RedirectionNotFound(key)
     }
 }
