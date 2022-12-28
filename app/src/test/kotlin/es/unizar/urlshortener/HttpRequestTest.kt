@@ -101,6 +101,8 @@ class HttpRequestTest {
         TimeUnit.SECONDS.sleep(2L)
         val response = restTemplate.getForEntity(target, String::class.java)
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(response.headers.get("Retry-After")).isEqualTo(listOf("500"))
+        assertThat(response.headers.location).isEqualTo(URI.create("http://example.com/health"))
 
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
     }
@@ -140,6 +142,25 @@ class HttpRequestTest {
     }
 
     @Test
+    fun `creates returns a forbidden if the url is shortened yet and is not secure`() {
+        val response1 = shortUrl("https://testsafebrowsing.appspot.com/s/malware.html")
+
+        assertThat(response1.statusCode).isEqualTo(HttpStatus.CREATED)
+
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "shorturl")).isEqualTo(1)
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
+
+        TimeUnit.SECONDS.sleep(2L)
+
+        val response2 = shortUrl("https://testsafebrowsing.appspot.com/s/malware.html")
+
+        assertThat(response2.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "shorturl")).isEqualTo(1)
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
+    }
+
+    @Test
     fun `creates returns bad request if it can't compute a hash`() {
         val response = shortUrl("ftp://shop.mango.com/es")
 
@@ -159,8 +180,15 @@ class HttpRequestTest {
     }
 
     @Test
-    fun `qr returns a not found when the key does not exist`() {
+    fun `qr returns a bad request when the key exists but doesn't exist qr for that key`() {
+        shortUrl("http://shop.mango.com/es")
+        TimeUnit.SECONDS.sleep(2L)
+        val response = callQR("http://localhost:$port/f9e0870d/qr")
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
 
+    @Test
+    fun `qr returns a not found when the key does not exist`() {
         val response = callQR("http://localhost:$port/f684a3c4/qr")
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }

@@ -3,7 +3,6 @@ package es.unizar.urlshortener.infrastructure.delivery
 import es.unizar.urlshortener.core.ClickProperties
 import es.unizar.urlshortener.core.ShortUrlProperties
 import es.unizar.urlshortener.core.UrlNotSafe
-import es.unizar.urlshortener.core.WebUnreachable
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.QrCodeUseCase
@@ -101,7 +100,7 @@ class UrlShortenerControllerImpl(
     val reachableQueue: BlockingQueue<String>
 ) : UrlShortenerController {
 
-    @Suppress("NestedBlockDepth")
+    @Suppress("NestedBlockDepth", "ReturnCount")
     @GetMapping("/{id:(?!api|index).*}")
     override fun redirectTo(@PathVariable id: String, request: HttpServletRequest): ResponseEntity<Void> {
 
@@ -115,7 +114,10 @@ class UrlShortenerControllerImpl(
                         h.location = URI.create(shorturl.redirection.target)
                         return ResponseEntity<Void>(h, HttpStatus.valueOf(shorturl.redirection.mode))
                     } else {
-                        throw WebUnreachable(shorturl.redirection.target)
+                        val h = HttpHeaders()
+                        h.location = URI.create(shorturl.redirection.target)
+                        h.set(HttpHeaders.RETRY_AFTER, RETRY_AFTER_DELAY.toString())
+                        return ResponseEntity<Void>(h, HttpStatus.BAD_REQUEST)
                     }
                 } else {
                     throw UrlNotSafe(shorturl.redirection.target)

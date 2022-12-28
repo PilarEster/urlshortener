@@ -1,13 +1,13 @@
 package es.unizar.urlshortener.infrastructure.delivery
 
 import es.unizar.urlshortener.core.ClickProperties
+import es.unizar.urlshortener.core.InfoNotAvailable
 import es.unizar.urlshortener.core.InvalidUrlException
 import es.unizar.urlshortener.core.Redirection
 import es.unizar.urlshortener.core.RedirectionNotFound
 import es.unizar.urlshortener.core.ShortUrl
 import es.unizar.urlshortener.core.ShortUrlProperties
 import es.unizar.urlshortener.core.UrlNotSafe
-import es.unizar.urlshortener.core.WebUnreachable
 import es.unizar.urlshortener.core.usecases.CreateShortUrlUseCase
 import es.unizar.urlshortener.core.usecases.LogClickUseCase
 import es.unizar.urlshortener.core.usecases.QrCodeUseCase
@@ -129,7 +129,7 @@ class UrlShortenerControllerTest {
     }
 
     @Test
-    fun `redirectTo returns a bad request when the key exists and the website is unreachable`() {
+    fun `redirectTo returns a bad request with retry-after when the key exists and the website is unreachable`() {
         given(redirectUseCase.redirectTo("key"))
             .willReturn(
                 ShortUrl(
@@ -141,11 +141,12 @@ class UrlShortenerControllerTest {
             )
 
         given(
-            reachableWebUseCase.reach("http://example.com/health")
-        ).willAnswer { throw WebUnreachable("http://example.com/health") }
+            reachableWebUseCase.isReachable("http://example.com/health")
+        ).willReturn(false)
 
         mockMvc.perform(get("/{id}", "key"))
             .andExpect(status().isBadRequest)
+            .andExpect(header().stringValues("Retry-After", "500"))
 
         verify(logClickUseCase, never()).logClick("key", ClickProperties(ip = "127.0.0.1"))
     }
@@ -259,6 +260,15 @@ class UrlShortenerControllerTest {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.IMAGE_PNG))
             .andExpect(content().bytes("Hello".toByteArray()))
+    }
+
+    @Test
+    fun `qr returns a bad request when the key exists but doesn't exist qr for that key`() {
+        given(qrCodeUseCase.getQR("key"))
+            .willAnswer { throw InfoNotAvailable("key", "QR") }
+
+        mockMvc.perform(get("/{id}/qr", "key"))
+            .andDo(print())
     }
 
     @Test
