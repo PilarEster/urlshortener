@@ -6,6 +6,7 @@ import es.unizar.urlshortener.core.Redirection
 import es.unizar.urlshortener.core.ShortUrl
 import es.unizar.urlshortener.core.ShortUrlProperties
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
+import es.unizar.urlshortener.core.UrlNotSafe
 import es.unizar.urlshortener.core.ValidatorService
 
 /**
@@ -27,22 +28,31 @@ class CreateShortUrlUseCaseImpl(
     private val hashService: HashService
 ) : CreateShortUrlUseCase {
     override fun create(url: String, data: ShortUrlProperties): ShortUrl =
-        if (validatorService.isValid(url)) {
-            val id: String = hashService.hasUrl(url)
 
-            val short = ShortUrl(
-                hash = id,
-                redirection = Redirection(target = url),
-                properties = ShortUrlProperties(
-                    ip = data.ip,
-                    sponsor = data.sponsor,
-                    qr = data.qr
+        shortUrlRepository.findByKey(hashService.hasUrl(url))?.let { short ->
+            short.properties.safe?.let {
+                if (!it) {
+                    throw UrlNotSafe(url)
+                }
+            }
+            return short
+        } ?: run {
+            if (validatorService.isValid(url)) {
+                val id: String = hashService.hasUrl(url)
+                val short = ShortUrl(
+                    hash = id,
+                    redirection = Redirection(target = url),
+                    properties = ShortUrlProperties(
+                        ip = data.ip,
+                        sponsor = data.sponsor,
+                        qr = data.qr
+                    )
                 )
-            )
-            validatorService.sendToRabbit(url, id)
+                validatorService.sendToRabbit(url, id)
 
-            shortUrlRepository.save(short)
-        } else {
-            throw InvalidUrlException(url)
+                shortUrlRepository.save(short)
+            } else {
+                throw InvalidUrlException(url)
+            }
         }
 }
