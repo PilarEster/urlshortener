@@ -224,4 +224,28 @@ class HttpRequestTest {
     private fun callQR(url: String): ResponseEntity<ByteArrayResource> {
         return restTemplate.getForEntity(url, HttpHeaders(), ByteArrayResource::class.java)
     }
+
+    /*@Test
+    fun `ranking returns an empty list when there is not urls visited`() {
+        val target = shortUrl("http://example.com/health").headers.location
+        require(target != null)
+        TimeUnit.SECONDS.sleep(2L)
+        val response = restTemplate.getForEntity(target, String::class.java)
+        assertThat(response.).isEqualTo("")
+
+    }
+
+    @Test
+    fun `ranking returns a not empty list when there are urls visited`() {
+        val target = shortUrl("http://example.com/health").headers.location
+        require(target != null)
+        TimeUnit.SECONDS.sleep(2L)
+        val response = restTemplate.getForEntity(target, String::class.java)
+        assertThat(response.).isEqualTo("")
+
+    }
+
+    */
+
+
 }
