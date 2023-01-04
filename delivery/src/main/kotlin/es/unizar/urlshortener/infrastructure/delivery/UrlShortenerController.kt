@@ -47,8 +47,14 @@ interface UrlShortenerController {
      */
     fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut>
 
+    /**
+     * Creates a ranking of urls.
+     */
     fun ranking(request: HttpServletRequest): ResponseEntity<RankingDataOut>
 
+    /**
+     * Creates a ranking of users.
+     */
     fun users(request: HttpServletRequest): ResponseEntity<UserDataOut>
 
     fun generateQrCode(id: String, request: HttpServletRequest): ResponseEntity<ByteArrayResource>
@@ -72,12 +78,15 @@ data class ShortUrlDataOut(
 )
 
 /**
- * Data returned after the creation of a ranking.
+ * Data returned after the creation of a url ranking.
  */
 data class RankingDataOut(
     val list: List<UrlSum> = emptyList()
 )
 
+/**
+ * Data returned after the creation of a user ranking.
+ */
 data class UserDataOut(
     val list: List<UserSum> = emptyList()
 )
