@@ -279,4 +279,32 @@ class UrlShortenerControllerTest {
         mockMvc.perform(get("/{id}/qr", "key"))
             .andDo(print())
     }
+
+    @Test
+    fun `googleSafeBrowsing detect a malicious webpage`() {
+        given(
+            createShortUrlUseCase.create(
+                url = "https://testsafebrowsing.appspot.com/s/phishing.html",
+                data = ShortUrlProperties(ip = "127.0.0.1")
+            )
+        ).willReturn(ShortUrl("e1d75a01", Redirection("https://testsafebrowsing.appspot.com/s/phishing.html")))
+        given(
+            redirectUseCase.redirectTo("e1d75a01")
+        ).willAnswer { throw UrlNotSafe("https://testsafebrowsing.appspot.com/s/phishing.html") }
+
+        mockMvc.perform(
+            post("/api/link")
+                .param("url", "https://testsafebrowsing.appspot.com/s/phishing.html")
+                .param("qr", "false")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+        )
+            .andDo(print())
+            .andExpect(status().isCreated)
+            .andExpect(redirectedUrl("http://localhost/e1d75a01"))
+        mockMvc.perform(
+            get("/{id}", "e1d75a01")
+        )
+            .andDo(print())
+            .andExpect(status().isForbidden)
+    }
 }

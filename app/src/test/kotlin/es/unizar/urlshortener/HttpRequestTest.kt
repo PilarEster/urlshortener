@@ -3,6 +3,7 @@ package es.unizar.urlshortener
 import es.unizar.urlshortener.infrastructure.delivery.ShortUrlDataOut
 import org.apache.http.impl.client.HttpClientBuilder
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,9 +21,12 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.jdbc.JdbcTestUtils
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
+import org.testcontainers.containers.RabbitMQContainer
 import java.net.URI
 import java.util.concurrent.TimeUnit
 
@@ -36,6 +40,26 @@ class HttpRequestTest {
 
     @Autowired
     private lateinit var restTemplate: TestRestTemplate
+
+    companion object {
+        var rabbitMQContainer: RabbitMQContainer = RabbitMQContainer("rabbitmq:3.9-management")
+            .withExposedPorts(5672)
+
+        @JvmStatic
+        @DynamicPropertySource
+        fun properties(regs: DynamicPropertyRegistry) {
+            rabbitMQContainer.start()
+
+            regs.add("spring.rabbitmq.port") { -> rabbitMQContainer.getMappedPort(5672) }
+            regs.add("spring.rabbitmq.host") { -> rabbitMQContainer.host }
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun tearDown() {
+            rabbitMQContainer.stop()
+        }
+    }
 
     @BeforeEach
     fun setup() {

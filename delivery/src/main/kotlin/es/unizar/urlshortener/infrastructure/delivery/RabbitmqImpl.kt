@@ -2,13 +2,14 @@ package es.unizar.urlshortener.infrastructure.delivery
 
 import es.unizar.urlshortener.core.Rabbitmq
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
+import es.unizar.urlshortener.core.ValidatorService
 import org.springframework.stereotype.Component
 
 /**
  * Component Rabbitmq
  */
 @Component
-class RabbitmqImpl(private val shortUrl: ShortUrlRepositoryService) :
+class RabbitmqImpl(private val shortUrl: ShortUrlRepositoryService, private val validatorService: ValidatorService) :
     Rabbitmq {
 
     /**
@@ -18,10 +19,10 @@ class RabbitmqImpl(private val shortUrl: ShortUrlRepositoryService) :
      */
     override fun proveUrl(message: String) {
         println("Received < $message >")
-        val url = message.substringBefore('-')
-        val id = message.substringAfter('-')
+        val url = message.substringBefore(' ')
+        val id = message.substringAfter(' ')
 
-        if (!googleSafeBrowsing(url)) {
+        if (!validatorService.googleSafeBrowsing(url)) {
             shortUrl.changeSecurityGoogle(id)
         } else {
             shortUrl.updateSecuritySecure(id)
