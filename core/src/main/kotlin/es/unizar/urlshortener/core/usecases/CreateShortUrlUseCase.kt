@@ -35,7 +35,23 @@ class CreateShortUrlUseCaseImpl(
                     throw UrlNotSafe(url)
                 }
             }
-            return short
+
+            if (short.properties.qr == false && data.qr == true) {
+                val shortUrl = ShortUrl(
+                    hash = hashService.hasUrl(url),
+                    redirection = Redirection(target = url),
+                    properties = ShortUrlProperties(
+                        ip = data.ip,
+                        sponsor = data.sponsor,
+                        qr = data.qr,
+                        safe = short.properties.safe
+                    )
+                )
+
+                shortUrlRepository.save(shortUrl)
+            } else {
+                short
+            }
         } ?: run {
             if (validatorService.isValid(url)) {
                 val id: String = hashService.hasUrl(url)

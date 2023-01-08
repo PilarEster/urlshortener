@@ -120,13 +120,13 @@ class HttpRequestTest {
 
     @Test
     fun `redirectTo returns a bad request when the key exists and is not reachable`() {
-        val target = shortUrl("http://example.com/health").headers.location
+        val target = shortUrl("https://moodle.unizar.es/add/health").headers.location
         require(target != null)
         TimeUnit.SECONDS.sleep(2L)
         val response = restTemplate.getForEntity(target, String::class.java)
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         assertThat(response.headers.get("Retry-After")).isEqualTo(listOf("500"))
-        assertThat(response.headers.location).isEqualTo(URI.create("http://example.com/health"))
+        assertThat(response.headers.location).isEqualTo(URI.create("https://moodle.unizar.es/add/health"))
 
         assertThat(JdbcTestUtils.countRowsInTable(jdbcTemplate, "click")).isEqualTo(0)
     }

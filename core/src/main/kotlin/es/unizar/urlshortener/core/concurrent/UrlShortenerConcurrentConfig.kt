@@ -11,11 +11,14 @@ private const val POOL_SIZE = 20
 private const val CORE_POOL_SIZE = 20
 private const val QUEUE_CAPACITY = 1000
 
+/**
+ * Configuration used by concurrent processes that has the anotation @Async with the content concurrentConfig
+ * */
 @Configuration
 @EnableAsync
 @EnableScheduling
 open class UrlShortenerConcurrentConfig {
-    @Bean("executorQueueConfig")
+    @Bean("concurrentConfig")
     open fun executor(): Executor {
         val executor = ThreadPoolTaskExecutor()
         executor.maxPoolSize = POOL_SIZE

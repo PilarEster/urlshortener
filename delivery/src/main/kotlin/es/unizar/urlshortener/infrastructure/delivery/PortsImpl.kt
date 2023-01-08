@@ -83,6 +83,9 @@ class HashServiceImpl : HashService {
     override fun hasUrl(url: String) = Hashing.murmur3_32_fixed().hashString(url, StandardCharsets.UTF_8).toString()
 }
 
+/**
+ * Implementation of the port [QrService].
+ */
 class QrServiceImpl : QrService {
     override fun getQr(url: String): ByteArray =
         ByteArrayOutputStream().let {

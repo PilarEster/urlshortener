@@ -1,6 +1,5 @@
 package es.unizar.urlshortener.core.usecases
 
-import es.unizar.urlshortener.core.WebUnreachable
 import org.springframework.http.HttpStatus
 import java.net.URI
 import java.net.http.HttpClient
@@ -16,10 +15,21 @@ import java.util.concurrent.BlockingQueue
 // private const val REQUEST_HEAD_TIMEOUT = 2L
 private const val UPDATE_REACHABILITY_TIMEOUT = 5L
 
+/**
+ * Class that manages the reachability info of the stored URLs.
+ *
+ * *[reach]* checks the reachability of a URL.
+ *
+ * *[isReachable]* provides reachability info of a URL.
+ *
+ * *[updateReachableUrl]* check if stored reachability info must be updated.
+ *
+ * **Note**: To provide reachability info it must be checked previously.
+ */
 interface ReachableWebUseCase {
     fun reach(url: String)
 
-    fun isReachable(url: String): Boolean
+    fun isReachable(url: String): Boolean?
 
     fun updateReachableUrl()
 }
@@ -51,8 +61,7 @@ class ReachableWebUseCaseImpl(
         }
     }
 
-    override fun isReachable(url: String): Boolean =
-        reachableMap.get(url)?.first ?: throw WebUnreachable(url)
+    override fun isReachable(url: String): Boolean? = reachableMap.get(url)?.first
 
     override fun updateReachableUrl() {
         reachableMap.map { i ->

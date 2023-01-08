@@ -5,6 +5,15 @@ import es.unizar.urlshortener.core.QrService
 import es.unizar.urlshortener.core.RedirectionNotFound
 import es.unizar.urlshortener.core.ShortUrlRepositoryService
 
+/**
+ * Class that manages QR Codes generation.
+ *
+ * *[generateQR]* generates a QR Code using an id and an url.
+ *
+ * *[getQR]* provides a QR Code using an id.
+ *
+ * **Note**: To provide a QR it must be created previously.
+ */
 interface QrCodeUseCase {
     fun generateQR(id: String, url: String)
 
