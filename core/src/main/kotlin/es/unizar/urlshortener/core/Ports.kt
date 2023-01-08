@@ -31,6 +31,8 @@ interface ValidatorService {
     fun isValid(url: String): Boolean
 
     fun sendToRabbit(url: String, id: String)
+
+    fun googleSafeBrowsing(url: String): Boolean
 }
 
 /**

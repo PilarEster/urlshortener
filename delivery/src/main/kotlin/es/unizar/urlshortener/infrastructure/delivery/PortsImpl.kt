@@ -32,28 +32,18 @@ class ValidatorServiceImpl : ValidatorService {
 
         rabbitTemplate.convertAndSend(
             "urlshort",
-            "$url-$id"
+            "$url $id"
         )
     }
-    companion object {
-        val urlValidator = UrlValidator(arrayOf("http", "https"))
-    }
-}
 
-/**
- * Implementation of the port [HashService].
- */
-@Suppress("UnstableApiUsage")
-class HashServiceImpl : HashService {
-    override fun hasUrl(url: String) = Hashing.murmur3_32_fixed().hashString(url, StandardCharsets.UTF_8).toString()
-}
-/**
- * Implementation of the functionality of Google Safe Browsing
- * Return true if the response is empty *(" {}")* that means that the url is secure, false otherwise
- */
-fun googleSafeBrowsing(url: String): Boolean {
-    val keyURI = "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=AIzaSyA-X7PVj9e2vuaxT5nqyp58TcFa4gBQNo4"
-    val valuesGoogle = """
+    /**
+     * Implementation of the functionality of Google Safe Browsing
+     * Return true if the response is empty *(" {}")* that means that the url is secure, false otherwise
+     */
+    override fun googleSafeBrowsing(url: String): Boolean {
+        val keyURI = "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" +
+            "AIzaSyA-X7PVj9e2vuaxT5nqyp58TcFa4gBQNo4"
+        val valuesGoogle = """
         {
             "client":{
                 "clientId":"accessSafe",
@@ -69,15 +59,28 @@ fun googleSafeBrowsing(url: String): Boolean {
         }
     """
 
-    // Código inspirado en https://zetcode.com/kotlin/getpostrequest/
-    val client = HttpClient.newBuilder().build()
-    val request = HttpRequest.newBuilder()
-        .uri(URI.create(keyURI))
-        .header("Content-Type", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString(valuesGoogle.format(url)))
-        .build()
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-    return response.toString().contains("200") && response.body().length <= N_GOOGLE_GOOD_RESPONSE
+        // Código inspirado en https://zetcode.com/kotlin/getpostrequest/
+        val client = HttpClient.newBuilder().build()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(keyURI))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(valuesGoogle.format(url)))
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.toString().contains("200") && response.body().length <= N_GOOGLE_GOOD_RESPONSE
+    }
+
+    companion object {
+        val urlValidator = UrlValidator(arrayOf("http", "https"))
+    }
+}
+
+/**
+ * Implementation of the port [HashService].
+ */
+@Suppress("UnstableApiUsage")
+class HashServiceImpl : HashService {
+    override fun hasUrl(url: String) = Hashing.murmur3_32_fixed().hashString(url, StandardCharsets.UTF_8).toString()
 }
 
 class QrServiceImpl : QrService {
