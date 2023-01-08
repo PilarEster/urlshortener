@@ -16,6 +16,9 @@ class ClickRepositoryServiceImpl(
 ) : ClickRepositoryService {
     override fun save(cl: Click): Click = clickEntityRepository.save(cl.toEntity()).toDomain()
 
+    /**
+     * Get the visited urls and the number of visits that they have received.
+     */
     override fun computeClickSum(): List<ClickSum> = clickEntityRepository.computeClickSum()
 }
 
@@ -30,6 +33,9 @@ class ShortUrlRepositoryServiceImpl(
 
     override fun save(su: ShortUrl): ShortUrl = shortUrlEntityRepository.save(su.toEntity()).toDomain()
 
+    /**
+     * Get the users that have shortened urls and the number of urls that they have shortened.
+     */
     override fun computeUserClicks(): List<ClickUserSum> = shortUrlEntityRepository.computeUserClicks()
 
     /**

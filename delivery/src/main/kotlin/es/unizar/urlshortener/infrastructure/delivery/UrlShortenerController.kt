@@ -47,8 +47,14 @@ interface UrlShortenerController {
      */
     fun shortener(data: ShortUrlDataIn, request: HttpServletRequest): ResponseEntity<ShortUrlDataOut>
 
+    /**
+     * Creates a ranking of urls.
+     */
     fun ranking(request: HttpServletRequest): ResponseEntity<RankingDataOut>
 
+    /**
+     * Creates a ranking of users.
+     */
     fun users(request: HttpServletRequest): ResponseEntity<UserDataOut>
 
     fun generateQrCode(id: String, request: HttpServletRequest): ResponseEntity<ByteArrayResource>
@@ -72,12 +78,15 @@ data class ShortUrlDataOut(
 )
 
 /**
- * Data returned after the creation of a ranking.
+ * Data returned after the creation of a url ranking.
  */
 data class RankingDataOut(
     val list: List<UrlSum> = emptyList()
 )
 
+/**
+ * Data returned after the creation of a user ranking.
+ */
 data class UserDataOut(
     val list: List<UserSum> = emptyList()
 )
@@ -175,7 +184,7 @@ class UrlShortenerControllerImpl(
             ResponseEntity<ByteArrayResource>(ByteArrayResource(it, IMAGE_PNG_VALUE), headers, HttpStatus.OK)
         }
 
-    @GetMapping("/api/link")
+    @GetMapping("/api/link/urls")
     override fun ranking(request: HttpServletRequest): ResponseEntity<RankingDataOut> =
         rankingUseCase.ranking().let {
             val response = RankingDataOut(
@@ -184,7 +193,7 @@ class UrlShortenerControllerImpl(
             ResponseEntity<RankingDataOut>(response, HttpStatus.OK)
         }
 
-    @GetMapping("/api/link/{id}")
+    @GetMapping("/api/link/users")
     override fun users(request: HttpServletRequest): ResponseEntity<UserDataOut> =
         rankingUseCase.user().let {
             val response = UserDataOut(

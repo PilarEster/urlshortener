@@ -58,7 +58,7 @@ function getURL(url, qr){
 
 function getRanking(){
     event.preventDefault();
-    fetch('http://localhost:8080/api/link')
+    fetch('http://localhost:8080/api/link/urls')
         .then(response => {
             if(!response.ok) {
                throw Error(response.status)
@@ -66,6 +66,7 @@ function getRanking(){
             return response.json()
         })
         .then(response => {
+            document.getElementById('list').innerHTML = ""
             response.list.forEach(e => {
                 document.getElementById('list').innerHTML += `<li>${e.hash}     ${e.sum}</li>`
             })
@@ -78,7 +79,7 @@ function getRanking(){
 
 function getUsers(){
     event.preventDefault();
-    fetch('http://localhost:8080/api/link/{id}')
+    fetch('http://localhost:8080/api/link/users')
         .then(response => {
             if(!response.ok) {
                throw Error(response.status)
@@ -86,6 +87,7 @@ function getUsers(){
             return response.json()
         })
         .then(response => {
+            document.getElementById('users').innerHTML = ""
             response.list.forEach(e => {
                 document.getElementById('users').innerHTML += `<li>${e.ip}     ${e.sum}</li>`
             })
