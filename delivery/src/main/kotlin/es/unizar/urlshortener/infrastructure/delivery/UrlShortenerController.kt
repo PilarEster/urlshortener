@@ -184,7 +184,7 @@ class UrlShortenerControllerImpl(
             ResponseEntity<ByteArrayResource>(ByteArrayResource(it, IMAGE_PNG_VALUE), headers, HttpStatus.OK)
         }
 
-    @GetMapping("/api/link")
+    @GetMapping("/api/link/urls")
     override fun ranking(request: HttpServletRequest): ResponseEntity<RankingDataOut> =
         rankingUseCase.ranking().let {
             val response = RankingDataOut(
@@ -193,7 +193,7 @@ class UrlShortenerControllerImpl(
             ResponseEntity<RankingDataOut>(response, HttpStatus.OK)
         }
 
-    @GetMapping("/api/link/{id}")
+    @GetMapping("/api/link/users")
     override fun users(request: HttpServletRequest): ResponseEntity<UserDataOut> =
         rankingUseCase.user().let {
             val response = UserDataOut(

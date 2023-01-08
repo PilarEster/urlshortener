@@ -58,7 +58,7 @@ function getURL(url, qr){
 
 function getRanking(){
     event.preventDefault();
-    fetch('http://localhost:8080/api/link')
+    fetch('http://localhost:8080/api/link/urls')
         .then(response => {
             if(!response.ok) {
                throw Error(response.status)
@@ -79,7 +79,7 @@ function getRanking(){
 
 function getUsers(){
     event.preventDefault();
-    fetch('http://localhost:8080/api/link/{id}')
+    fetch('http://localhost:8080/api/link/users')
         .then(response => {
             if(!response.ok) {
                throw Error(response.status)

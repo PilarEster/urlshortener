@@ -59,7 +59,6 @@ class RankingUseCaseImpl(
             }
         }.filterNotNull()
         return resp.sortedByDescending { it.sum }
-        return resp
     }
     override fun user(): List<UserSum> {
         var lista = shortUrlRepositoryService.computeUserClicks().map { case ->

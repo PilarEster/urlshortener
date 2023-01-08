@@ -14,6 +14,8 @@ import es.unizar.urlshortener.core.usecases.QrCodeUseCase
 import es.unizar.urlshortener.core.usecases.RankingUseCase
 import es.unizar.urlshortener.core.usecases.ReachableWebUseCase
 import es.unizar.urlshortener.core.usecases.RedirectUseCase
+import es.unizar.urlshortener.core.usecases.UrlSum
+import es.unizar.urlshortener.core.usecases.UserSum
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.never
@@ -277,6 +279,54 @@ class UrlShortenerControllerTest {
             .willAnswer { throw RedirectionNotFound("key") }
 
         mockMvc.perform(get("/{id}/qr", "key"))
+            .andDo(print())
+    }
+
+    @Test
+    fun `url ranking returns an empty list when there is not urls visited`() {
+        given(rankingUseCase.ranking())
+            .willReturn(emptyList())
+
+        mockMvc.perform(get("/api/link/urls"))
+            .andDo(print())
+    }
+
+    @Test
+    fun `url ranking returns a not empty list when there are urls shortened`() {
+        createShortUrlUseCase.create(
+            url = "http://example.com/",
+            data = ShortUrlProperties(ip = "127.0.0.1")
+        )
+        var e = UrlSum("f684a3c4", 1)
+        var testlist: List<UrlSum> = listOf(e)
+        given(rankingUseCase.ranking())
+            .willReturn(testlist)
+
+        mockMvc.perform(get("/api/link/urls"))
+            .andDo(print())
+    }
+
+    @Test
+    fun `user ranking returns an empty list when there is not urls visited`() {
+        given(rankingUseCase.user())
+            .willReturn(emptyList())
+
+        mockMvc.perform(get("/api/link/users"))
+            .andDo(print())
+    }
+
+    @Test
+    fun `users ranking returns a not empty list when there are urls shrotened`() {
+        createShortUrlUseCase.create(
+            url = "http://example.com/",
+            data = ShortUrlProperties(ip = "127.0.0.1")
+        )
+        var e = UserSum("127.0.0.1", 1)
+        var testlist: List<UserSum> = listOf(e)
+        given(rankingUseCase.user())
+            .willReturn(testlist)
+
+        mockMvc.perform(get("/api/link/users"))
             .andDo(print())
     }
 }
