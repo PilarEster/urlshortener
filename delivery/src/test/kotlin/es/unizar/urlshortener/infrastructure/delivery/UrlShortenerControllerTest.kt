@@ -316,7 +316,7 @@ class UrlShortenerControllerTest {
     }
 
     @Test
-    fun `users ranking returns a not empty list when there are urls shrotened`() {
+    fun `users ranking returns a not empty list when there are urls shortened`() {
         createShortUrlUseCase.create(
             url = "http://example.com/",
             data = ShortUrlProperties(ip = "127.0.0.1")
@@ -328,6 +328,8 @@ class UrlShortenerControllerTest {
 
         mockMvc.perform(get("/api/link/users"))
             .andDo(print())
+    }
+
     @Test
     fun `googleSafeBrowsing detect a malicious webpage`() {
         given(
